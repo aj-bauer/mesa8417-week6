@@ -35,27 +35,38 @@ bnb_df = get_bnb_data()
 
 # Set the title that appears at the top of the page.
 st.title("Exploring Montreal Airbnb Data")
-st.header("Avi Bauer")
+st.markdown('''
+Exploration of the Inside Airbnb dataset (see more: https://insideairbnb.com/montreal/).
+            
+By Avi Bauer for MESA8417, Summer 2025.''')
 
 with st.sidebar:
+
+    st.header("Filters")
+    
     # Choose neighborhood (dropdown)
     neighborhood = st.selectbox(
-        label="Filter by Neighborhood",
-        options=["All"] + list(bnb_df["neighbourhood_cleansed"].unique())
+        label="Neighborhood",
+        options=["Montreal"] + list(bnb_df["neighbourhood_cleansed"].unique())
     )
 
     # Filter by min/max rating
-    rating_range = st.slider(label="Select Rating Range",
+    rating_range = st.slider(label="Overall Rating",
                                  min_value=float(bnb_df["review_scores_rating"].min()), 
                                  max_value=float(bnb_df["review_scores_rating"].max()), 
                                  value=(0.0, 5.0))
 
 # Apply filters
-bnb_filtered = bnb_df if neighborhood == "All" else bnb_df[bnb_df["neighbourhood_cleansed"] == neighborhood]
+bnb_filtered = bnb_df if neighborhood == "Montreal" else bnb_df[bnb_df["neighbourhood_cleansed"] == neighborhood]
 bnb_filtered = bnb_filtered[bnb_filtered["review_scores_rating"].between(*rating_range)]
 
+
 # Make a map of Montreal
+st.header(f"WHERE are the Airbnb listings in {neighborhood}?")
+st.metric(label="Listings",value="")
 st.map(data=bnb_filtered, 
        latitude="latitude", 
        longitude="longitude",
        size=20)
+
+# 
