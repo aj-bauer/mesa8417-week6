@@ -25,6 +25,9 @@ def get_bnb_data():
     # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
     DATA_FILENAME = Path(__file__).parent/'data/listings.csv.gz'
     bnb_df = pd.read_csv(DATA_FILENAME)
+    
+    # make price a float
+    bnb_df["price_float"] = bnb_df["price"].str.replace(r'[^\d.]', '', regex=True).astype(float)
 
     return bnb_df
 
@@ -42,7 +45,7 @@ By Avi Bauer for MESA8417, Summer 2025.''')
 
 with st.sidebar:
 
-    st.header("Filters")
+    st.header("Narrow it down!")
     
     # Choose neighborhood (dropdown)
     neighborhood = st.selectbox(
@@ -55,18 +58,66 @@ with st.sidebar:
                                  min_value=float(bnb_df["review_scores_rating"].min()), 
                                  max_value=float(bnb_df["review_scores_rating"].max()), 
                                  value=(0.0, 5.0))
+    
+    # Filter by price
+    price_max = st.number_input(label="Max Price",
+                                min_value=0.00,
+                                max_value=None,
+                                value=800.00,
+                                step=50.00)
 
-# Apply filters
+# Apply data filters
 bnb_filtered = bnb_df if neighborhood == "Montreal" else bnb_df[bnb_df["neighbourhood_cleansed"] == neighborhood]
 bnb_filtered = bnb_filtered[bnb_filtered["review_scores_rating"].between(*rating_range)]
-
+bnb_filtered = bnb_filtered[bnb_filtered["price_float"] <= price_max]
 
 # Make a map of Montreal
-st.header(f"WHERE are the Airbnb listings in {neighborhood}?")
-st.metric(label="Listings",value="")
-st.map(data=bnb_filtered, 
-       latitude="latitude", 
-       longitude="longitude",
-       size=20)
+with st.container():
 
-# 
+    st.header(f"WHERE are the Airbnb listings in {neighborhood}?")
+    st.markdown(f"There are {len(bnb_filtered)} listings in {neighborhood} at or below ${price_max} with a minimum score of {rating_range[0]} and a maximum score of {rating_range[1]}. Wow!")
+    
+    st.map(data=bnb_filtered, 
+        latitude="latitude", 
+        longitude="longitude",
+        size=20)
+
+# This is the only way I can figure how to add space...
+st.markdown(" ")
+st.markdown(" ")
+
+# define columns
+col1, col2 = st.columns(spec=2, gap="medium")
+
+# Make a pie chart of types of listings
+with col1:
+
+    selection = alt.selection_point(name="roomtype", fields=['room_type'], bind='legend')
+
+    room_types = alt.Chart(bnb_filtered).mark_arc(innerRadius=20, stroke="#fff").encode(
+        alt.Theta("count(room_type):Q").stack(True),
+        alt.Radius("count(room_type)").scale(type="sqrt", zero=True, rangeMin=10),
+        color="room_type:N",
+        opacity=alt.when(selection).then(alt.value(1)).otherwise(alt.value(0.2)),
+        tooltip=alt.Tooltip("count(room_type):Q",title="Count")
+    ).add_params(
+        selection
+    )
+
+    st.header(f"WHAT KINDS of rooms are available in {neighborhood}?")
+    st.markdown("(Click on the legend to create a filter!)")
+
+    st.altair_chart(room_types)
+
+# Make a boxplot of prices by accomodates
+with col2:
+
+    price_chart = alt.Chart(bnb_filtered).mark_boxplot().encode(
+        x=alt.X("price_float:Q", title="Price per Night ($USD)"),
+        y=alt.Y("accommodates:N", title="Accomodates", sort="descending"),
+        # color=alt.ColorValue("red")
+    )
+   
+    st.header(f"HOW MUCH do these rooms cost?")
+    
+    st.altair_chart(price_chart)
