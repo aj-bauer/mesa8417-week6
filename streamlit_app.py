@@ -6,7 +6,6 @@ import altair as alt
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    layout="wide",
     page_title='Montreal Airbnb Data',
     page_icon=':houses:' # This is an emoji shortcode. Could be a URL too.
 )
