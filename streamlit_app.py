@@ -73,7 +73,7 @@ bnb_filtered = bnb_filtered[bnb_filtered["price_float"] <= price_max]
 
 # Make a map of Montreal
 st.header(f"WHERE are the Airbnb listings in {neighborhood}?")
-st.markdown(f"There are {len(bnb_filtered)} listings in {neighborhood} at or below ${price_max} with a minimum score of {rating_range[0]} and a maximum score of {rating_range[1]}. Wow!")
+st.markdown(f"There are {len(bnb_filtered)} listings in {neighborhood} at or below ${price_max:.0f} with a minimum score of {rating_range[0]} and a maximum score of {rating_range[1]}. Wow!")
 
 st.map(data=bnb_filtered, 
     latitude="latitude", 
@@ -90,12 +90,12 @@ col1, col2 = st.columns(spec=2, gap="medium")
 # Make a pie chart of types of listings
 with col1:
 
-    select_slice = alt.selection_point(name="roomtype", fields=['room_type'])
+    select_slice = alt.selection_point(name="roomtype", fields=['room_type'], bind="legend", resolve="global")
 
     room_types = alt.Chart(bnb_filtered).mark_arc(innerRadius=20, stroke="#fff").encode(
-        alt.Theta("count(room_type):Q").stack(True).sort("count(room_type)"),
+        alt.Theta("count(room_type):Q", sort="descending").stack(True),
         alt.Radius("count(room_type)").scale(type="sqrt", zero=True, rangeMin=10),
-        color="room_type:N",
+        color=alt.Color("room_type:N").title("Room Type"),
         opacity=alt.when(select_slice).then(alt.value(1)).otherwise(alt.value(0.2)),
         tooltip=[alt.Tooltip("room_type",title="Type"),
             alt.Tooltip("count(room_type):Q",title="Count")]
@@ -104,14 +104,23 @@ with col1:
     )
 
     st.header(f"WHAT KINDS of rooms are available in {neighborhood}?")
-    st.markdown("(Click on the legend to create a filter!)")
+    st.markdown(f"Remember, all rooms have ratings between {rating_range[0]} and {rating_range[1]}, and are at/below ${price_max:.0f}. Click the legend to filter prices (left) by room type.")
 
     slicer = st.altair_chart(room_types, on_select="rerun")
-
+    
     # filter data by roomtype
-    if "room_type" in slicer["selection"]["roomtype"]:
-        bnb_filtered = bnb_filtered[bnb_filtered["room_type"] == slicer["selection"]["roomtype"]["room_type"]]
+    if len(slicer["selection"]["roomtype"]) > 0:
+        # st.markdown("Yeah!!")
+        rooms = slicer["selection"]["roomtype"][0]["room_type"]
+        bnb_filtered = bnb_filtered[bnb_filtered["room_type"] == rooms]
+        room_name = rooms
+    else:
+        room_name = "Airbnb"
+    
+    # st.markdown(slicer["selection"]["roomtype"])
 
+    
+    
 # Make a boxplot of prices by accomodates
 with col2:
 
@@ -121,6 +130,6 @@ with col2:
         # color=alt.ColorValue("red")
     )
    
-    st.header(f"HOW MUCH do all rooms cost?")
+    st.header(f"HOW MUCH does a {room_name} cost in {neighborhood}?")
     
     st.altair_chart(price_chart)
