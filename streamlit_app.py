@@ -131,6 +131,6 @@ with col2:
     )
    
     st.header(f"HOW MUCH does a {room_name} cost in {neighborhood}?")
-    st.markdown(f"Remember, all displayed rooms have ratings between {rating_range[0]} and {rating_range[1]}, and are at/below ${price_max:.0f}. Click the pie chart legend (right) to filter prices further by room type.")
+    st.markdown(f"Click the pie chart legend (right) to filter by room type.")
 
     st.altair_chart(price_chart)
