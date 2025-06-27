@@ -73,7 +73,7 @@ bnb_filtered = bnb_filtered[bnb_filtered["price_float"] <= price_max]
 
 # Make a map of Montreal
 st.header(f"WHERE are the Airbnb listings in {neighborhood}?")
-st.markdown(f"There are {len(bnb_filtered)} listings in {neighborhood} at or below ${price_max:.0f} with a minimum score of {rating_range[0]} and a maximum score of {rating_range[1]}. Wow!")
+st.markdown(f"There are {len(bnb_filtered)} listings in {neighborhood} at or below ${price_max:.0f} with a rating between {rating_range[0]} and {rating_range[1]}. Wow!")
 
 st.map(data=bnb_filtered, 
     latitude="latitude", 
