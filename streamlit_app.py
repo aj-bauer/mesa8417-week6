@@ -8,6 +8,7 @@ import altair as alt
 st.set_page_config(
     page_title='Montreal Airbnb Data',
     page_icon=':houses:', # This is an emoji shortcode. Could be a URL too.
+    layout="wide"
 )
 
 # -----------------------------------------------------------------------------
