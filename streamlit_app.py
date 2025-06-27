@@ -104,7 +104,7 @@ with col1:
     )
 
     st.header(f"WHAT KINDS of rooms are available in {neighborhood}?")
-    st.markdown(f"Remember, all rooms have ratings between {rating_range[0]} and {rating_range[1]}, and are at/below ${price_max:.0f}. Click the legend to filter prices (left) by room type.")
+    st.markdown(f"Remember, all displayed rooms have ratings between {rating_range[0]} and {rating_range[1]}, and are at/below ${price_max:.0f}. Click the legend to filter prices further by room type.")
 
     slicer = st.altair_chart(room_types, on_select="rerun")
     
